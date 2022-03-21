@@ -1,9 +1,9 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:kiosk_mode/kiosk_mode.dart';
 import 'package:lockwebpage/my_webview.dart';
-import 'package:flutter/services.dart';
 
 // import 'package:hardware_buttons/hardware_buttons.dart' as HardwareButtons;
 
@@ -18,32 +18,20 @@ class _HomePageState extends State<HomePage> {
   void popDialog() {
     TextEditingController _controller = TextEditingController();
     showDialog(
-      barrierDismissible: false,
+      // barrierDismissible: false,
       context: context,
       builder: (context) {
         return AlertDialog(
           backgroundColor: Colors.white,
-          content: Stack(
-            children: [
-              Positioned(
-                top: 0,
-                right: 0,
-                child: IconButton(
-                  onPressed: () {Navigator.pop(context);},
-                  icon: Icon(Icons.close),
-                ),
-              ),
-              TextField(
-                keyboardType: TextInputType.number,
-                controller: _controller,
-                maxLength: 4,
-                onSubmitted: (s) {
-                  if (s == '1234') {
-                    exit(0);
-                  }
-                },
-              ),
-            ],
+          content: TextField(
+            keyboardType: TextInputType.number,
+            controller: _controller,
+            maxLength: 4,
+            onSubmitted: (s) {
+              if (s == '1234') {
+                exit(0);
+              }
+            },
           ),
         );
       },
@@ -55,19 +43,27 @@ class _HomePageState extends State<HomePage> {
     SystemChrome.setEnabledSystemUIOverlays([]);
     startKioskMode();
     return Scaffold(
-      body: RawKeyboardListener(
-        focusNode: FocusNode(),
+      body: FocusScope(
         autofocus: true,
-        onKey: (event) {
-          if (event.runtimeType.toString() == 'RawKeyDownEvent') {
-            if (event.logicalKey.keyLabel == "Go Back") {
-              print('Allow exiting app');
-              popDialog();
+        child: Focus(
+          autofocus: true,
+          canRequestFocus: true,
+          onKey: (data, event) {
+            if (event.runtimeType.toString() == 'RawKeyDownEvent' &&
+                event.logicalKey.keyLabel == 'Go Back') {
+              print(event.logicalKey.keyLabel);
+              Timer(Duration(milliseconds: 200), () {
+                popDialog();
+              });
             }
-          }
-        },
-        child: MyWebView(
-          selectedUrl: 'https://www.wisniowski.pl/',
+            if (event.logicalKey.keyLabel == 'Go Back') {
+              return KeyEventResult.handled;
+            }
+            return KeyEventResult.ignored;
+          },
+          child: MyWebView(
+            selectedUrl: 'https://www.wisniowski.pl/',
+          ),
         ),
       ),
     );
